@@ -14,8 +14,35 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content:
-            "Analyze the following text and provide insights about: main topics, sentiment, key points, and any action items or follow-ups needed. Format the response as JSON.",
+          content: `
+          # Speech Analysis Prompt
+
+Please analyze my speaking/writing below:
+
+${text}
+
+For your analysis, please:
+
+1. Highlight specific sentences or phrases that could be improved
+   - Original: [Quote the original sentence]
+   - Issue: [Brief explanation of why it needs improvement]
+   - Better version: [Provide a clearer, more effective way to express the same idea]
+
+2. Focus on:
+   - Unclear or awkward phrasing
+   - Overly complex sentences
+   - Grammar and word choice issues
+   - Run-on sentences
+   - Redundant expressions
+
+3. Keep explanations brief but specific, so I understand exactly what to improve.
+
+Please format your response in json format which contains the following fields:
+
+- original: "[sentence that needs improvement]"
+- better: "[improved version]"
+- why: [One-line explanation of the improvement]
+          `,
         },
         {
           role: "user",
