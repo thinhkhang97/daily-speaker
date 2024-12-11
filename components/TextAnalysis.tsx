@@ -3,8 +3,71 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
+interface AnalysisItem {
+  original: string;
+  better: string;
+  why: string;
+}
+
+const mockResult = {
+  analysis: [
+    {
+      original: "I usually wake up at half-five o'clock.",
+      better: "I usually wake up at five-thirty.",
+      why: "Improves clarity and uses more common time expression.",
+    },
+    {
+      original: "I cannot sleep more because I feel that is enough.",
+      better: "I can't sleep more because I feel that's enough sleep for me.",
+      why: "Provides clearer reasoning and avoids repetition.",
+    },
+    {
+      original:
+        "So if I need to go to the office in the morning, I need to repair the meal for lunch and some time for my dinner.",
+      better:
+        "So if I go to the office in the morning, I need to prepare lunch and sometimes dinner in advance.",
+      why: "Clarifies the sentence and corrects misused word 'repair' to 'prepare'.",
+    },
+    {
+      original:
+        "So in the morning, we spend lots of time for exercising and cooking and then I go to work at 9 a.m. or 10 a.m. but it depends on my routine.",
+      better:
+        "In the morning, we spend a lot of time exercising and cooking before I head to work at 9 a.m. or 10 a.m., depending on my schedule.",
+      why: "Improves flow and clarity.",
+    },
+    {
+      original:
+        "So about an evening, I usually come home at 6 p.m. and had dinner before 7 o'clock because I am in a dia so I don't want to have dinner late.",
+      better:
+        "In the evening, I usually come home by 6 p.m. and have dinner before 7 o'clock because I am dieting and don't want to eat late.",
+      why: "Clarifies the time of day, corrects tense, and clarifies 'in a dia' to 'dieting'.",
+    },
+    {
+      original:
+        "But I usually start at home to learn the new things or to try some new technology or researching.",
+      better:
+        "But at home, I usually spend time learning new things, trying out new technologies, or doing research.",
+      why: "Improves flow and specificity.",
+    },
+    {
+      original:
+        "I and my wife also cook some delicious meals or go to some places to enjoy the weekend.",
+      better:
+        "My wife and I also cook delicious meals or visit places to enjoy the weekend.",
+      why: "Corrects the grammatical structure and simplifies the wording.",
+    },
+    {
+      original:
+        "So I think my routine kind of come on but I still enjoy routine with my wife.",
+      better:
+        "So I think my routine is somewhat common, but I still enjoy it with my wife.",
+      why: "Clarifies the meaning and corrects grammatical issues.",
+    },
+  ],
+};
+
 const TextAnalysis = ({ text }: { text: string }) => {
-  const [analysis, setAnalysis] = useState(null);
+  const [analysis, setAnalysis] = useState<AnalysisItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   const analyzeText = async () => {
@@ -17,9 +80,8 @@ const TextAnalysis = ({ text }: { text: string }) => {
         },
         body: JSON.stringify({ text }),
       });
-
       const data = await response.json();
-      setAnalysis(data);
+      setAnalysis(data.analysis);
     } catch (error) {
       console.error("Error analyzing text:", error);
     }
@@ -55,10 +117,34 @@ const TextAnalysis = ({ text }: { text: string }) => {
         {analysis && (
           <div className="space-y-2">
             <h3 className="font-medium">Analysis Results:</h3>
-            <div className="p-4 bg-muted rounded-lg">
-              <pre className="text-sm whitespace-pre-wrap">
-                {JSON.stringify(analysis, null, 2)}
-              </pre>
+            <div className="p-4 bg-muted rounded-lg space-y-4">
+              {analysis.map((item, index) => (
+                <div
+                  key={index}
+                  className="p-4 bg-white rounded-lg shadow-sm space-y-2"
+                >
+                  <div className="p-2 bg-red-50 rounded border border-red-100">
+                    <p>
+                      <strong className="text-red-700">Original:</strong>{" "}
+                      <span className="text-red-600">{item.original}</span>
+                    </p>
+                  </div>
+
+                  <div className="p-2 bg-green-50 rounded border border-green-100">
+                    <p>
+                      <strong className="text-green-700">Better:</strong>{" "}
+                      <span className="text-green-600">{item.better}</span>
+                    </p>
+                  </div>
+
+                  <div className="p-2 bg-blue-50 rounded border border-blue-100">
+                    <p>
+                      <strong className="text-blue-700">Why:</strong>{" "}
+                      <span className="text-blue-600">{item.why}</span>
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

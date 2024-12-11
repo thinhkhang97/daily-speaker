@@ -51,6 +51,10 @@ Please format your response in json format which contains the following fields:
       ],
       response_format: { type: "json_object" },
     });
+    console.log(
+      "🚀 ~ POST ~ completion.choices[0].message.content:",
+      completion.choices[0].message.content
+    );
 
     return completion.choices[0].message.content
       ? NextResponse.json(JSON.parse(completion.choices[0].message.content))
