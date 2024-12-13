@@ -34,12 +34,6 @@ export function Navbar() {
             >
               History
             </Link>
-            <Link
-              href="/profile"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground"
-            >
-              Profile
-            </Link>
           </nav>
         </div>
 
@@ -59,10 +53,6 @@ export function Navbar() {
                   </Avatar>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => signOut()}
                     className="text-red-600"
