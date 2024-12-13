@@ -1,6 +1,5 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mic, Square } from "lucide-react";
 import { useRef, useState } from "react";
 
@@ -53,53 +52,48 @@ const VoiceRecorder = ({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Voice Recorder
-          {isRecording && (
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2" />
-              Recording...
-            </div>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="w-full max-w-sm">
+      <div className="space-y-4">
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        <div className="flex justify-center space-x-4">
+        <div className="flex flex-col items-center gap-4">
           {!isRecording ? (
-            <Button onClick={startRecording} className="w-32" variant="default">
-              <Mic className="mr-2 h-4 w-4" />
-              Record
+            <Button onClick={startRecording} size="lg" className="w-full">
+              <Mic className="mr-2 h-5 w-5" />
+              Start Recording
             </Button>
           ) : (
             <Button
               onClick={stopRecording}
-              className="w-32"
+              size="lg"
               variant="destructive"
+              className="w-full"
             >
-              <Square className="mr-2 h-4 w-4" />
-              Stop
+              <Square className="mr-2 h-5 w-5" />
+              Stop Recording
             </Button>
           )}
-        </div>
 
-        {audioBlob && !isRecording && (
-          <div className="mt-4">
+          {isRecording && (
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-sm text-gray-600">Recording...</span>
+            </div>
+          )}
+
+          {audioBlob && !isRecording && (
             <audio controls className="w-full">
               <source src={URL.createObjectURL(audioBlob)} type="audio/webm" />
               Your browser does not support the audio element.
             </audio>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

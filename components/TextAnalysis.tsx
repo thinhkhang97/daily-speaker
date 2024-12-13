@@ -89,16 +89,9 @@ const TextAnalysis = ({ text }: { text: string }) => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto mt-4">
-      <CardHeader>
-        <CardTitle>Text Analysis</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="p-4 bg-muted rounded-lg">
-          <h3 className="font-medium mb-2">Transcribed Text:</h3>
-          <p className="text-sm">{text || "No text to analyze yet"}</p>
-        </div>
-
+    <div className="bg-white rounded-lg shadow-lg p-6 h-full">
+      <h2 className="text-xl font-semibold mb-4">Speech Analysis</h2>
+      <div className="space-y-4 h-[calc(100%-2rem)]">
         <Button
           onClick={analyzeText}
           disabled={!text || loading}
@@ -110,18 +103,17 @@ const TextAnalysis = ({ text }: { text: string }) => {
               Analyzing...
             </>
           ) : (
-            "Analyze Text"
+            "Analyze Speech"
           )}
         </Button>
 
-        {analysis && (
-          <div className="space-y-2">
-            <h3 className="font-medium">Analysis Results:</h3>
-            <div className="p-4 bg-muted rounded-lg space-y-4">
+        <div className="overflow-auto h-[calc(100%-4rem)]">
+          {analysis.length > 0 && (
+            <div className="space-y-4">
               {analysis.map((item, index) => (
                 <div
                   key={index}
-                  className="p-4 bg-white rounded-lg shadow-sm space-y-2"
+                  className="p-4 bg-gray-50 rounded-lg space-y-2"
                 >
                   <div className="p-2 bg-red-50 rounded border border-red-100">
                     <p>
@@ -146,10 +138,10 @@ const TextAnalysis = ({ text }: { text: string }) => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
