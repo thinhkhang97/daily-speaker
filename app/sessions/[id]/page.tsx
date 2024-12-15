@@ -2,13 +2,45 @@
 
 import TextAnalysis from "@/components/TextAnalysis";
 import VoiceRecorder from "@/components/VoiceRecorder";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PencilIcon } from "lucide-react";
+import { useParams } from "next/navigation";
 
-export default function Home() {
+interface Session {
+  id: string;
+  title: string;
+  transcription: string;
+}
+
+export default function SessionPage() {
+  const params = useParams<{ id: string }>();
   const [transcribedText, setTranscribedText] = useState("");
   const [title, setTitle] = useState("New Session");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSessionData = async () => {
+      if (!params?.id) return;
+
+      try {
+        const response = await fetch(`/api/sessions/${params.id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch session");
+        }
+        const session: Session = await response.json();
+
+        setTitle(session.title);
+        setTranscribedText(session.transcription);
+      } catch (error) {
+        console.error("Error fetching session:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSessionData();
+  }, [params?.id]);
 
   const handleAudioRecorded = async (audioBlob: Blob) => {
     const formData = new FormData();
@@ -22,10 +54,29 @@ export default function Home() {
 
       const data = await response.json();
       setTranscribedText(data.text);
+
+      // Save the updated transcription to the session
+      await fetch(`/api/sessions/${params.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transcription: data.text,
+        }),
+      });
     } catch (error) {
       console.error("Error transcribing audio:", error);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-50">
