@@ -21,6 +21,7 @@ export default function SessionPage() {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [latestVersionNumber, setLatestVersionNumber] = useState(1);
 
   useEffect(() => {
     const fetchSessionData = async () => {
@@ -44,6 +45,17 @@ export default function SessionPage() {
     };
 
     fetchSessionData();
+  }, [params?.id]);
+
+  useEffect(() => {
+    const fetchLatestVersion = async () => {
+      if (!params?.id) return;
+      const response = await fetch(`/api/sessions/${params.id}/latest-version`);
+      const data = await response.json();
+      setLatestVersionNumber((data.latestVersion?.version_number || 0) + 1);
+    };
+
+    fetchLatestVersion();
   }, [params?.id]);
 
   const handleAudioRecorded = async (audioBlob: Blob) => {
@@ -166,7 +178,11 @@ export default function SessionPage() {
 
             {/* Analysis Section */}
             <div className="h-full">
-              <TextAnalysis text={transcribedText} />
+              <TextAnalysis
+                text={transcribedText}
+                sessionId={params?.id || ""}
+                versionNumber={latestVersionNumber}
+              />
             </div>
           </div>
         </div>

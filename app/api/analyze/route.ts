@@ -1,3 +1,4 @@
+import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
@@ -7,8 +8,10 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    const { text } = await req.json();
+    const { text, sessionId, versionNumber } = await req.json();
+    const supabase = await createClient();
 
+    // 1. Get OpenAI analysis
     const completion = await openai.chat.completions.create({
       model: "gpt-4-turbo-preview",
       messages: [
@@ -37,11 +40,16 @@ For your analysis, please:
 
 3. Keep explanations brief but specific, so I understand exactly what to improve.
 
-Please format your response in json format which contains the following fields:
-
-- original: "[sentence that needs improvement]"
-- better: "[improved version]"
-- why: [One-line explanation of the improvement]
+Please format your response in json format
+{
+  "analysis": [
+    {
+      "original": "[sentence that needs improvement]",
+      "better": "[improved version]",
+      "why": [One-line explanation of the improvement]
+    }
+  ]
+}
           `,
         },
         {
@@ -51,18 +59,46 @@ Please format your response in json format which contains the following fields:
       ],
       response_format: { type: "json_object" },
     });
-    console.log(
-      "🚀 ~ POST ~ completion.choices[0].message.content:",
-      completion.choices[0].message.content
-    );
 
-    return completion.choices[0].message.content
-      ? NextResponse.json(JSON.parse(completion.choices[0].message.content))
-      : NextResponse.json({ error: "No content" }, { status: 400 });
+    if (!completion.choices[0].message.content) {
+      return NextResponse.json({ error: "No content" }, { status: 400 });
+    }
+
+    const analysisResult = JSON.parse(completion.choices[0].message.content);
+    console.log("🚀 ~ POST ~ analysisResult:", analysisResult);
+
+    // 2. Create new version
+    const { data: versionData, error: versionError } = await supabase
+      .from("versions")
+      .insert({
+        session_id: sessionId,
+        transcript: text,
+        version_number: versionNumber,
+      })
+      .select()
+      .single();
+
+    if (versionError) {
+      throw versionError;
+    }
+
+    // 3. Create improvements
+    const improvementPromises = analysisResult.analysis.map((item: any) => {
+      return supabase.from("improvements").insert({
+        version_id: versionData.id,
+        original_text: item.original,
+        suggested_text: item.better,
+        explanation: item.why,
+      });
+    });
+
+    await Promise.all(improvementPromises);
+
+    return NextResponse.json(analysisResult);
   } catch (error) {
     console.error("Error:", error);
     return NextResponse.json(
-      { error: "Error analyzing text" },
+      { error: "Error processing request" },
       { status: 500 }
     );
   }
