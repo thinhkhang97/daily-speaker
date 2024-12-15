@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
 
 interface AnalysisItem {
   original: string;
@@ -10,46 +9,21 @@ interface AnalysisItem {
 
 const TextAnalysis = ({
   text,
-  sessionId,
-  initialAnalysis,
-  versionNumber,
+  analysis,
+  loading,
+  onAnalyze,
 }: {
   text: string;
-  sessionId: string;
-  versionNumber: number;
-  initialAnalysis: AnalysisItem[];
+  analysis: AnalysisItem[];
+  loading: boolean;
+  onAnalyze: () => void;
 }) => {
-  const [analysis, setAnalysis] = useState<AnalysisItem[]>(initialAnalysis);
-  const [loading, setLoading] = useState(false);
-
-  const analyzeText = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text,
-          sessionId,
-          versionNumber,
-        }),
-      });
-      const data = await response.json();
-      setAnalysis(data.analysis);
-    } catch (error) {
-      console.error("Error analyzing text:", error);
-    }
-    setLoading(false);
-  };
-
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 h-full">
       <h2 className="text-xl font-semibold mb-4">Speech Analysis</h2>
       <div className="space-y-4 h-[calc(100%-2rem)]">
         <Button
-          onClick={analyzeText}
+          onClick={onAnalyze}
           disabled={!text || loading}
           className="w-full"
         >

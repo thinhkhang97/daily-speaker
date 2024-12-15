@@ -32,6 +32,7 @@ export default function SessionPage() {
   const [latestVersionNumber, setLatestVersionNumber] = useState(1);
   const [improvements, setImprovements] = useState<Improvement[]>([]);
   const [versions, setVersions] = useState<Version[]>([]);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
 
   useEffect(() => {
     const fetchSessionData = async () => {
@@ -124,6 +125,36 @@ export default function SessionPage() {
       console.error("Error updating title:", error);
       // Optionally, you could add error handling UI here
     }
+  };
+
+  const analyzeText = async () => {
+    setAnalysisLoading(true);
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: transcribedText,
+          sessionId: params?.id,
+          versionNumber: latestVersionNumber,
+        }),
+      });
+      const data = await response.json();
+      setImprovements(
+        data.analysis.map(
+          (item: { original: string; better: string; why: string }) => ({
+            original_text: item.original,
+            suggested_text: item.better,
+            explanation: item.why,
+          })
+        )
+      );
+    } catch (error) {
+      console.error("Error analyzing text:", error);
+    }
+    setAnalysisLoading(false);
   };
 
   if (isLoading) {
@@ -238,13 +269,13 @@ export default function SessionPage() {
             <div className="h-full">
               <TextAnalysis
                 text={transcribedText}
-                sessionId={params?.id || ""}
-                versionNumber={latestVersionNumber}
-                initialAnalysis={improvements.map((improvement) => ({
+                analysis={improvements.map((improvement) => ({
                   original: improvement.original_text,
                   better: improvement.suggested_text,
                   why: improvement.explanation,
                 }))}
+                loading={analysisLoading}
+                onAnalyze={analyzeText}
               />
             </div>
           </div>
