@@ -1,19 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import { useAuth } from "@/lib/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/AuthContext";
+import Link from "next/link";
 
 export function Navbar() {
   const { user, signOut } = useAuth();
-
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">

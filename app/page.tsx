@@ -5,13 +5,14 @@ import { useAuth } from "@/lib/AuthContext";
 import { Session } from "@/types/session";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signInWithGoogle } from "./actions/auth";
 
 export default function Home() {
-  const { user, signInWithGoogle } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
 
-  const createNewSession = () => {
+  const createNewSession = async () => {
     const newSession: Session = {
       id: crypto.randomUUID(),
       title: `Practice Session ${sessions.length + 1}`,
@@ -19,8 +20,29 @@ export default function Home() {
       updatedAt: new Date(),
       versions: [],
     };
-    setSessions([...sessions, newSession]);
-    router.push(`/sessions/${newSession.id}`);
+
+    try {
+      const response = await fetch("/api/sessions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...newSession,
+          user_id: user?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create session");
+      }
+
+      setSessions([...sessions, newSession]);
+      router.push(`/sessions/${newSession.id}`);
+    } catch (error) {
+      console.error("Error creating session:", error);
+      // You might want to show an error message to the user here
+    }
   };
 
   return (

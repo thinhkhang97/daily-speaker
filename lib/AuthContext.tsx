@@ -1,15 +1,12 @@
 "use client";
 
+import { User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import type { User } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  signIn: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,43 +16,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Fetch session from server-side API endpoint
+    const fetchSession = async () => {
+      const response = await fetch("/api/auth/session", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const session = await response.json();
       setUser(session?.user ?? null);
       setLoading(false);
-    });
+    };
 
-    // Listen for changes on auth state (signed in, signed out, etc.)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    fetchSession();
 
-    return () => subscription.unsubscribe();
+    // Setup event listener for auth changes
+    const handleAuthChange = () => {
+      fetchSession();
+    };
+    window.addEventListener("auth-change", handleAuthChange);
+
+    return () => {
+      window.removeEventListener("auth-change", handleAuthChange);
+    };
   }, []);
 
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) throw error;
-  };
-
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    await fetch("/api/auth/signout", { method: "POST" });
+    setUser(null);
   };
 
   const value = {
     user,
     loading,
-    signInWithGoogle,
     signOut,
-    signIn: () => {},
   };
 
   return (
