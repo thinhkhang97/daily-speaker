@@ -11,13 +11,15 @@ interface AnalysisItem {
 const TextAnalysis = ({
   text,
   sessionId,
+  initialAnalysis,
   versionNumber,
 }: {
   text: string;
   sessionId: string;
   versionNumber: number;
+  initialAnalysis: AnalysisItem[];
 }) => {
-  const [analysis, setAnalysis] = useState<AnalysisItem[]>([]);
+  const [analysis, setAnalysis] = useState<AnalysisItem[]>(initialAnalysis);
   const [loading, setLoading] = useState(false);
 
   const analyzeText = async () => {

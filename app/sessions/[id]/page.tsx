@@ -7,6 +7,7 @@ import { PencilIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Improvement } from "@/types/session";
 
 interface Session {
   id: string;
@@ -22,20 +23,40 @@ export default function SessionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [latestVersionNumber, setLatestVersionNumber] = useState(1);
+  const [improvements, setImprovements] = useState<Improvement[]>([]);
 
   useEffect(() => {
     const fetchSessionData = async () => {
       if (!params?.id) return;
 
       try {
-        const response = await fetch(`/api/sessions/${params.id}`);
-        if (!response.ok) {
+        // Fetch session data
+        const sessionResponse = await fetch(`/api/sessions/${params.id}`);
+        if (!sessionResponse.ok) {
           throw new Error("Session not found");
         }
-        const session: Session = await response.json();
-
+        const session: Session = await sessionResponse.json();
         setTitle(session.title);
         setTranscribedText(session.transcription);
+
+        // Fetch latest version
+        const versionResponse = await fetch(
+          `/api/sessions/${params.id}/latest-version`
+        );
+        const versionData = await versionResponse.json();
+        setLatestVersionNumber((versionData.version_number || 0) + 1);
+        setTranscribedText(versionData.transcript || "");
+
+        // If there's a latest version, fetch its improvements
+        if (versionData.id) {
+          const improvementsResponse = await fetch(
+            `/api/versions/${versionData.id}/improvements`
+          );
+          if (improvementsResponse.ok) {
+            const improvementsData = await improvementsResponse.json();
+            setImprovements(improvementsData.improvements);
+          }
+        }
       } catch (error) {
         console.error("Error fetching session:", error);
         setError("Session not found");
@@ -45,17 +66,6 @@ export default function SessionPage() {
     };
 
     fetchSessionData();
-  }, [params?.id]);
-
-  useEffect(() => {
-    const fetchLatestVersion = async () => {
-      if (!params?.id) return;
-      const response = await fetch(`/api/sessions/${params.id}/latest-version`);
-      const data = await response.json();
-      setLatestVersionNumber((data.latestVersion?.version_number || 0) + 1);
-    };
-
-    fetchLatestVersion();
   }, [params?.id]);
 
   const handleAudioRecorded = async (audioBlob: Blob) => {
@@ -182,6 +192,11 @@ export default function SessionPage() {
                 text={transcribedText}
                 sessionId={params?.id || ""}
                 versionNumber={latestVersionNumber}
+                initialAnalysis={improvements.map((improvement) => ({
+                  original: improvement.original_text,
+                  better: improvement.suggested_text,
+                  why: improvement.explanation,
+                }))}
               />
             </div>
           </div>
