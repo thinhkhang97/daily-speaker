@@ -7,7 +7,14 @@ import { PencilIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Improvement } from "@/types/session";
+import { Improvement, Version } from "@/types/session";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { format } from "date-fns";
 
 interface Session {
   id: string;
@@ -24,6 +31,7 @@ export default function SessionPage() {
   const [error, setError] = useState<string | null>(null);
   const [latestVersionNumber, setLatestVersionNumber] = useState(1);
   const [improvements, setImprovements] = useState<Improvement[]>([]);
+  const [versions, setVersions] = useState<Version[]>([]);
 
   useEffect(() => {
     const fetchSessionData = async () => {
@@ -41,16 +49,18 @@ export default function SessionPage() {
 
         // Fetch latest version
         const versionResponse = await fetch(
-          `/api/sessions/${params.id}/latest-version`
+          `/api/sessions/${params.id}/versions`
         );
         const versionData = await versionResponse.json();
-        setLatestVersionNumber((versionData.version_number || 0) + 1);
-        setTranscribedText(versionData.transcript || "");
+        const latestVersion = versionData[0];
+        setVersions(versionData);
+        setLatestVersionNumber((latestVersion.version_number || 0) + 1);
+        setTranscribedText(latestVersion.transcript || "");
 
         // If there's a latest version, fetch its improvements
-        if (versionData.id) {
+        if (latestVersion.id) {
           const improvementsResponse = await fetch(
-            `/api/versions/${versionData.id}/improvements`
+            `/api/versions/${latestVersion.id}/improvements`
           );
           if (improvementsResponse.ok) {
             const improvementsData = await improvementsResponse.json();
@@ -147,9 +157,42 @@ export default function SessionPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-8">
           <div className="flex justify-end">
-            <Button variant="outline" className="w-16">
-              V{latestVersionNumber}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-16">
+                  V{latestVersionNumber}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {versions.map((version) => (
+                  <DropdownMenuItem
+                    key={version.id}
+                    onClick={async () => {
+                      setTranscribedText(version.transcript || "");
+
+                      const improvementsResponse = await fetch(
+                        `/api/versions/${version.id}/improvements`
+                      );
+                      if (improvementsResponse.ok) {
+                        const improvementsData =
+                          await improvementsResponse.json();
+                        setImprovements(improvementsData.improvements);
+                      }
+                    }}
+                  >
+                    <div className="flex flex-col">
+                      <span>Version {version.version_number}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {format(
+                          new Date(version.updated_at),
+                          "MMM d, yyyy h:mm a"
+                        )}
+                      </span>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <div className="flex justify-center items-center gap-2">
             {isEditingTitle ? (
