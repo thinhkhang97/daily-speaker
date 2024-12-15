@@ -1,30 +1,30 @@
 export interface Session {
   id: string;
   title: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
   versions: Version[];
 }
 
 export interface Version {
   id: string;
-  sessionId: string;
-  versionNumber: number;
-  audioUrl: string;
+  session_id: string;
+  version_number: number;
+  audio_url: string;
   transcript: string;
   analysis: {
     improvements: Improvement[];
   };
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Improvement {
   id: string;
-  versionId: string;
-  originalText: string;
-  suggestedText: string;
+  version_id: string;
+  original_text: string;
+  suggested_text: string;
   explanation: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
