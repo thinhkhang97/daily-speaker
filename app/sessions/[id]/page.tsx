@@ -144,8 +144,13 @@ export default function SessionPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-8">
         <div className="space-y-8">
+          <div className="flex justify-end">
+            <Button variant="outline" className="w-16">
+              V{latestVersionNumber}
+            </Button>
+          </div>
           <div className="flex justify-center items-center gap-2">
             {isEditingTitle ? (
               <input
