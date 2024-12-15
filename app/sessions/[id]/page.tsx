@@ -5,6 +5,8 @@ import VoiceRecorder from "@/components/VoiceRecorder";
 import { useState, useEffect } from "react";
 import { PencilIcon } from "lucide-react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface Session {
   id: string;
@@ -18,6 +20,7 @@ export default function SessionPage() {
   const [title, setTitle] = useState("New Session");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSessionData = async () => {
@@ -26,7 +29,7 @@ export default function SessionPage() {
       try {
         const response = await fetch(`/api/sessions/${params.id}`);
         if (!response.ok) {
-          throw new Error("Failed to fetch session");
+          throw new Error("Session not found");
         }
         const session: Session = await response.json();
 
@@ -34,6 +37,7 @@ export default function SessionPage() {
         setTranscribedText(session.transcription);
       } catch (error) {
         console.error("Error fetching session:", error);
+        setError("Session not found");
       } finally {
         setIsLoading(false);
       }
@@ -94,6 +98,24 @@ export default function SessionPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-2">{error}</h1>
+          <p className="text-gray-600 mb-4">
+            The requested session could not be found.
+          </p>
+          <Button>
+            <Link href="/" className="inline-block px-4 py-2 transition-colors">
+              Back to Home
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
