@@ -43,6 +43,8 @@ export default function SessionPage() {
   }, [params?.id]);
 
   const handleAudioRecorded = async (audioBlob: Blob) => {
+    if (!params?.id) return;
+
     const formData = new FormData();
     formData.append("audio", audioBlob);
 
@@ -70,6 +72,24 @@ export default function SessionPage() {
     }
   };
 
+  const handleTitleUpdate = async (newTitle: string) => {
+    if (!params?.id) return;
+    try {
+      await fetch(`/api/sessions/${params.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: newTitle,
+        }),
+      });
+    } catch (error) {
+      console.error("Error updating title:", error);
+      // Optionally, you could add error handling UI here
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -88,7 +108,10 @@ export default function SessionPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                onBlur={() => setIsEditingTitle(false)}
+                onBlur={async () => {
+                  setIsEditingTitle(false);
+                  await handleTitleUpdate(title);
+                }}
                 autoFocus
                 className="text-2xl font-bold text-center bg-transparent border-none focus:outline-none focus:ring-2 rounded px-2 py-1"
                 placeholder="Enter session title..."
