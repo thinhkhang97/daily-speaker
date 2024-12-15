@@ -19,7 +19,7 @@ export function Navbar() {
           <Link href="/" className="text-xl font-bold">
             Daily Speak
           </Link>
-          <nav className="hidden md:flex items-center space-x-6">
+          {/* <nav className="hidden md:flex items-center space-x-6">
             <Link
               href="/"
               className="text-sm font-medium text-muted-foreground hover:text-foreground"
@@ -32,7 +32,7 @@ export function Navbar() {
             >
               History
             </Link>
-          </nav>
+          </nav> */}
         </div>
 
         <div className="flex items-center space-x-4">
