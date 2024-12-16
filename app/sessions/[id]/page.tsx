@@ -55,11 +55,11 @@ export default function SessionPage() {
         const versionData = await versionResponse.json();
         const latestVersion = versionData[0];
         setVersions(versionData);
-        setSelectedVersion(latestVersion.version_number);
-        setTranscribedText(latestVersion.transcript || "");
+        setSelectedVersion(latestVersion?.version_number || 1);
+        setTranscribedText(latestVersion?.transcript || "");
 
         // If there's a latest version, fetch its improvements
-        if (latestVersion.id) {
+        if (latestVersion?.id) {
           const improvementsResponse = await fetch(
             `/api/versions/${latestVersion.id}/improvements`
           );
@@ -190,7 +190,11 @@ export default function SessionPage() {
           <div className="flex justify-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-16">
+                <Button
+                  disabled={versions.length === 0}
+                  variant="outline"
+                  className="w-16"
+                >
                   V{selectedVersion}
                 </Button>
               </DropdownMenuTrigger>

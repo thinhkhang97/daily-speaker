@@ -13,6 +13,7 @@ export async function GET(
     .select("id, transcript, version_number, created_at, updated_at, audio_url")
     .eq("session_id", resolvedParams.id)
     .order("version_number", { ascending: false });
+  console.log("🚀 ~ versions:", versions);
 
   return NextResponse.json(versions);
 }
