@@ -29,10 +29,10 @@ export default function SessionPage() {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [latestVersionNumber, setLatestVersionNumber] = useState(1);
   const [improvements, setImprovements] = useState<Improvement[]>([]);
   const [versions, setVersions] = useState<Version[]>([]);
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [selectedVersion, setSelectedVersion] = useState(1);
 
   useEffect(() => {
     const fetchSessionData = async () => {
@@ -55,7 +55,7 @@ export default function SessionPage() {
         const versionData = await versionResponse.json();
         const latestVersion = versionData[0];
         setVersions(versionData);
-        setLatestVersionNumber((latestVersion.version_number || 0) + 1);
+        setSelectedVersion(latestVersion.version_number);
         setTranscribedText(latestVersion.transcript || "");
 
         // If there's a latest version, fetch its improvements
@@ -138,7 +138,7 @@ export default function SessionPage() {
         body: JSON.stringify({
           text: transcribedText,
           sessionId: params?.id,
-          versionNumber: latestVersionNumber,
+          versionNumber: Math.max(...versions.map((v) => v.version_number)) + 1,
         }),
       });
       const data = await response.json();
@@ -191,7 +191,7 @@ export default function SessionPage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-16">
-                  V{latestVersionNumber}
+                  V{selectedVersion}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -200,6 +200,7 @@ export default function SessionPage() {
                     key={version.id}
                     onClick={async () => {
                       setTranscribedText(version.transcript || "");
+                      setSelectedVersion(version.version_number);
 
                       const improvementsResponse = await fetch(
                         `/api/versions/${version.id}/improvements`
